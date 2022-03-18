@@ -77,7 +77,41 @@ app.post('/links',
 // Write your authentication routes here
 /************************************************************/
 
+app.get('/login', (req, res) => {
+  res.render('login');
+});
 
+app.get('/signup', (req, res) => {
+  res.render('signup');
+});
+
+// models.user.create
+// create({ username, password }) {
+
+app.post('/login', (req, res) => {
+  const { username, password: attempted } = req.body;
+
+  // query the db: get from the `users` table where username = req.body.username
+  //  - password
+  //  - salt
+  models.Users.get({ username })
+    .then(data => {
+      if (data && models.Users.compare(attempted, data.password, data.salt)) {
+        res.render('index');
+      } else {
+        res.render('login');
+      }
+    });
+
+  // invoke model.Users.compare(attempted, password, salt) -> boolean
+});
+
+app.post('/signup', (req, res) => {
+  models.Users.create(req.body).then(() => {
+    // TODO: issue some kind of auth token
+    res.render('index');
+  });
+});
 
 /************************************************************/
 // Handle the code parameter route last - if all other routes fail
