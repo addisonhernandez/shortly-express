@@ -98,8 +98,10 @@ app.post('/login', (req, res) => {
     res.redirect('/');
   } else {
     //checks to see if credentials are correct and true
-    models.Users.get({ username }).then(data => {
-      if (data && models.Users.compare(attempted, data.password, data.salt)) {
+    models.Users.get({ username }).then(userData => {
+      if (userData && models.Users.compare(attempted, userData.password, userData.salt)) {
+        models.Sessions.update({ hash: req.session.hash }, { id: userData.id });
+        // .then(() => res.redirect('/'));
         res.redirect('/');
       } else {
         res.redirect('/login');
@@ -114,9 +116,9 @@ app.post('/signup', (req, res) => {
   models.Users.get({ username }).then((userData) => {
     if (!userData) {
       //sign up person
-      models.Users.create(req.body).then(() => {
-        res.redirect('/');
-      });
+      models.Users.create(req.body)
+        .then((data) => models.Sessions.update({ hash: req.session.hash }, { userId: data.insertId }))
+        .then(() => res.redirect('/'));
     } else {
       res.redirect('/signup');
     }
