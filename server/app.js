@@ -17,15 +17,17 @@ app.use(express.static(path.join(__dirname, '../public')));
 app.use(cookie);
 app.use(Auth.createSession);
 
-app.get('/', (req, res) => {
+const verifySession = (req, res, next) => Auth.verifySession(req, res, next);
+
+app.get('/', Auth.verifySession, (req, res) => {
   res.render('index');
 });
 
-app.get('/create', (req, res) => {
+app.get('/create', Auth.verifySession, (req, res) => {
   res.render('index');
 });
 
-app.get('/links', (req, res, next) => {
+app.get('/links', Auth.verifySession, (req, res, next) => {
   models.Links.getAll()
     .then(links => {
       res.status(200).send(links);

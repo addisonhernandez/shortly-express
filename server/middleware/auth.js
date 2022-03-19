@@ -8,34 +8,32 @@ const createNewCookie = function (req, res) {
       return models.Sessions.get({ id });
     })
     .then(hashObj => {
-      req.session = hashObj;
+      req.session = { hash: hashObj.hash };
+      req.body.username && (req.session.user = { username: req.body.username });
       res.cookie('shortlyid', req.session.hash);
       return hashObj;
     });
 };
 
 module.exports.createSession = (req, res, next) => {
-  if (req.cookies && req.cookies.shortlyid) {
+  if (req.cookies && req.cookies.shortlyid) { // session already exists
     let hash = req.cookies.shortlyid;
 
     models.Sessions.get({ hash })
-      //sessions already exists
       .then(result => {
-        if (result) {
+        if (result) { // user has an associated session
           req.session = result;
           res.cookie('shortlyid', req.session.hash);
-        } else {
-          createNewCookie(req, res)
-            .then(result => next(null, result))
-            .catch(error => next(error));
+        } else { // user does not have a session
+          return createNewCookie(req, res, next);
         }
       })
-      .then(result => next(null, result))
-      .catch(error => next(error));
+      .then(() => next())
+      .catch(error => { console.log('Uh, oh. Promise chain error! ', error); next(error); });
 
-  } else {
+  } else { //
     createNewCookie(req, res)
-      .then(result => next(null, result))
+      .then(() => next())
       .catch(error => next(error));
   }
 };
@@ -43,3 +41,11 @@ module.exports.createSession = (req, res, next) => {
 /************************************************************/
 // Add additional authentication middleware functions below
 /************************************************************/
+
+module.exports.verifySession = function (req, res, next) {
+  if (models.Sessions.isLoggedIn(req.session)) {
+    next();
+  } else {
+    res.redirect('/login');
+  }
+};
