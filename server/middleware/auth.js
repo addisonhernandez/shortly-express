@@ -15,7 +15,7 @@ const createNewCookie = function (req, res) {
 };
 
 module.exports.createSession = (req, res, next) => {
-  if (req.cookies.shortlyid) {
+  if (req.cookies && req.cookies.shortlyid) {
     let hash = req.cookies.shortlyid;
 
     models.Sessions.get({ hash })

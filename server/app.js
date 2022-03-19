@@ -15,8 +15,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, '../public')));
 //our custom middleware
 app.use(cookie);
-
-
+app.use(Auth.createSession);
 
 app.get('/', (req, res) => {
   res.render('index');
@@ -116,7 +115,6 @@ app.post('/signup', (req, res) => {
       res.redirect('/signup');
     }
   });
-
 });
 
 /************************************************************/
