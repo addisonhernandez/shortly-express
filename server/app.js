@@ -4,7 +4,7 @@ const utils = require('./lib/hashUtils');
 const partials = require('express-partials');
 const Auth = require('./middleware/auth');
 const models = require('./models');
-
+const cookie = require('./middleware/cookieParser');
 const app = express();
 
 app.set('views', `${__dirname}/views`);
@@ -13,21 +13,20 @@ app.use(partials());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, '../public')));
+//our custom middleware
+app.use(cookie);
 
 
 
-app.get('/', 
-(req, res) => {
+app.get('/', (req, res) => {
   res.render('index');
 });
 
-app.get('/create', 
-(req, res) => {
+app.get('/create', (req, res) => {
   res.render('index');
 });
 
-app.get('/links', 
-(req, res, next) => {
+app.get('/links', (req, res, next) => {
   models.Links.getAll()
     .then(links => {
       res.status(200).send(links);
@@ -37,8 +36,7 @@ app.get('/links',
     });
 });
 
-app.post('/links', 
-(req, res, next) => {
+app.post('/links', (req, res, next) => {
   var url = req.body.url;
   if (!models.Links.isValidUrl(url)) {
     // send back a 404 if link is not valid
@@ -97,18 +95,18 @@ app.post('/login', (req, res) => {
   models.Users.get({ username })
     .then(data => {
       if (data && models.Users.compare(attempted, data.password, data.salt)) {
+        // TODO: issue some kind of auth token?
         res.render('index');
       } else {
         res.render('login');
       }
     });
-
   // invoke model.Users.compare(attempted, password, salt) -> boolean
 });
 
 app.post('/signup', (req, res) => {
   models.Users.create(req.body).then(() => {
-    // TODO: issue some kind of auth token
+    // TODO: issue some kind of auth token?
     res.render('index');
   });
 });
