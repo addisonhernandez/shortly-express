@@ -82,8 +82,14 @@ app.get('/signup', (req, res) => {
   res.render('signup');
 });
 
-// models.user.create
-// create({ username, password }) {
+app.get('/logout', (req, res, next) => {
+  models.Sessions.delete({ hash: req.session.hash })
+    .then(() => {
+      res.cookie('shortlyid', null);
+      next();
+    });
+
+});
 
 app.post('/login', (req, res) => {
   const { username, password: attempted } = req.body;
