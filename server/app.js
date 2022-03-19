@@ -88,27 +88,35 @@ app.get('/signup', (req, res) => {
 
 app.post('/login', (req, res) => {
   const { username, password: attempted } = req.body;
-
-  // query the db: get from the `users` table where username = req.body.username
-  //  - password
-  //  - salt
-  models.Users.get({ username })
-    .then(data => {
+  //if person logged in is true, stay logged in aka access main page
+  if (models.Sessions.isLoggedIn({ username })) {
+    res.redirect('/');
+  } else {
+    //checks to see if credentials are correct and true
+    models.Users.get({ username }).then(data => {
       if (data && models.Users.compare(attempted, data.password, data.salt)) {
-        // TODO: issue some kind of auth token?
-        res.render('index');
+        res.redirect('/');
       } else {
-        res.render('login');
+        res.redirect('/login');
       }
     });
-  // invoke model.Users.compare(attempted, password, salt) -> boolean
+  }
 });
 
 app.post('/signup', (req, res) => {
-  models.Users.create(req.body).then(() => {
-    // TODO: issue some kind of auth token?
-    res.render('index');
+  const { username } = req.body;
+
+  models.Users.get({ username }).then((userData) => {
+    if (!userData) {
+      //sign up person
+      models.Users.create(req.body).then(() => {
+        res.redirect('/');
+      });
+    } else {
+      res.redirect('/signup');
+    }
   });
+
 });
 
 /************************************************************/
